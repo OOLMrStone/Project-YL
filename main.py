@@ -2,454 +2,16 @@ import io
 import sys
 import sqlite3
 import time
+import csv
+import random
 
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog
 
-login_template = """<?xml version="1.0" encoding="UTF-8"?>
-<ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>645</width>
-    <height>599</height>
-   </rect>
-  </property>
-  <property name="windowTitle">
-   <string>вход</string>
-  </property>
-  <property name="toolButtonStyle">
-   <enum>Qt::ToolButtonIconOnly</enum>
-  </property>
-  <widget class="QWidget" name="centralwidget">
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>30</y>
-      <width>611</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>18</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Добро пожаловать в &quot;МАСАНАБОР&quot;</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="reg_btn">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>340</y>
-      <width>391</width>
-      <height>81</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>17</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Регистрация</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="login_btn">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>240</y>
-      <width>391</width>
-      <height>81</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>17</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Вход</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="password_line">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>180</y>
-      <width>391</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="placeholderText">
-     <string>Пароль</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="login_line">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>120</y>
-      <width>391</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="placeholderText">
-     <string>Логин</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="status_lbl">
-    <property name="geometry">
-     <rect>
-      <x>130</x>
-      <y>430</y>
-      <width>391</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>645</width>
-     <height>18</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QStatusBar" name="statusbar"/>
- </widget>
- <resources>
-  <include location="lala.qrc"/>
- </resources>
- <connections/>
-</ui>
-"""
-main_template = """<?xml version="1.0" encoding="UTF-8"?>
-<ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
-  <property name="geometry">
-   <rect>
-    <x>0</x>
-    <y>0</y>
-    <width>801</width>
-    <height>596</height>
-   </rect>
-  </property>
-  <property name="font">
-   <font>
-    <pointsize>8</pointsize>
-   </font>
-  </property>
-  <property name="windowTitle">
-   <string>MainWindow</string>
-  </property>
-  <widget class="QWidget" name="centralwidget">
-   <widget class="QGraphicsView" name="graph">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>60</y>
-      <width>531</width>
-      <height>281</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>14</x>
-      <y>9</y>
-      <width>781</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>14</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Добро пожаловать, имя пользователя</string>
-    </property>
-   </widget>
-   <widget class="QDateEdit" name="dateEdit">
-    <property name="geometry">
-     <rect>
-      <x>550</x>
-      <y>100</y>
-      <width>241</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-   </widget>
-   <widget class="QDateEdit" name="dateEdit_2">
-    <property name="geometry">
-     <rect>
-      <x>550</x>
-      <y>190</y>
-      <width>241</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="watch_btn">
-    <property name="geometry">
-     <rect>
-      <x>550</x>
-      <y>270</y>
-      <width>241</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Посмотреть график</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_2">
-    <property name="geometry">
-     <rect>
-      <x>554</x>
-      <y>59</y>
-      <width>231</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>8</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>С:</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_3">
-    <property name="geometry">
-     <rect>
-      <x>550</x>
-      <y>150</y>
-      <width>241</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>8</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>До:</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_4">
-    <property name="geometry">
-     <rect>
-      <x>14</x>
-      <y>349</y>
-      <width>201</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Калорий сегодня:</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_5">
-    <property name="geometry">
-     <rect>
-      <x>224</x>
-      <y>350</y>
-      <width>31</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>0</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="add_btn">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>520</y>
-      <width>231</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>8</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Добавить</string>
-    </property>
-   </widget>
-   <widget class="QDateEdit" name="date_add">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>410</y>
-      <width>231</width>
-      <height>31</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="comboBox">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>450</y>
-      <width>231</width>
-      <height>31</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_6">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>490</y>
-      <width>231</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>8</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>еда - кол-во калорий</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_7">
-    <property name="geometry">
-     <rect>
-      <x>314</x>
-      <y>350</y>
-      <width>261</width>
-      <height>51</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string> Калорий на день:</string>
-    </property>
-   </widget>
-   <widget class="QSpinBox" name="cal_getter">
-    <property name="geometry">
-     <rect>
-      <x>581</x>
-      <y>361</y>
-      <width>61</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-     </font>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="menu_btn">
-    <property name="geometry">
-     <rect>
-      <x>650</x>
-      <y>360</y>
-      <width>141</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>8</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Составить меню</string>
-    </property>
-   </widget>
-   <widget class="QTextBrowser" name="menu">
-    <property name="geometry">
-     <rect>
-      <x>310</x>
-      <y>400</y>
-      <width>481</width>
-      <height>161</height>
-     </rect>
-    </property>
-   </widget>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>801</width>
-     <height>18</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QStatusBar" name="statusbar"/>
- </widget>
- <resources/>
- <connections/>
-</ui>
-"""
+with open("register.ui") as f:
+    login_template = f.read()
+with open("mainWindow.ui") as f:
+    main_template = f.read()
 
 
 class LoginWidget(QMainWindow):
@@ -471,13 +33,13 @@ class LoginWidget(QMainWindow):
             if len(self.password) >= 8:
                 self.cur.execute(f"INSERT INTO Accounts (login, password) VALUES (?, ?)",
                                  (self.login, self.password))
-                self.status_lbl.setText("Успешная регистрация!")
+                self.status_lbl.setText("Registration completed successfully!")
                 time.sleep(1)
                 self.start(self.login)
             else:
-                self.status_lbl.setText("Длина пароля не может быть меньше 8 символов.")
+                self.status_lbl.setText("Password has to contain at least 8 chars.")
         else:
-            self.status_lbl.setText("Данный логин уже занят.")
+            self.status_lbl.setText("This login already exists.")
         self.con.commit()
 
     def log_in(self):
@@ -485,29 +47,145 @@ class LoginWidget(QMainWindow):
         self.password = self.password_line.text()
         if not self.cur.execute("SELECT login FROM Accounts WHERE (login=?)",
                                 (self.login,)).fetchall():
-            self.status_lbl.setText("Данного логина не существует")
+            self.status_lbl.setText(f'There is no login "{self.login}".')
         else:
             if self.cur.execute("SELECT password FROM Accounts WHERE (login=? AND password=?)",
                                 (self.login, self.password)).fetchall():
-                self.status_lbl.setText("Успешный вход!")
+                self.status_lbl.setText(f"Welcome, {self.login}!")
+                time.sleep(1)
                 self.start(self.login)
             else:
-                self.status_lbl.setText("Неверно введен логин или пароль. Попробуйте еще.")
+                self.status_lbl.setText("Password or login is incorrect. Try again.")
 
     def start(self, login):
-        self.mn = Main()
+        self.mn = Main(login)
         self.mn.show()
 
 
 class Main(QMainWindow):
-    def __init__(self):
+    def __init__(self, login):
         super().__init__()
         f = io.StringIO(main_template)
         uic.loadUi(f, self)
-        self.add_btn.clicked.connect(self.run)
+        self.login = login
+        self.day = []
+        self.fcon = sqlite3.connect("accounts.db")
+        self.fcur = self.fcon.cursor()
+        self.get_menu_data()
+        self.menu_btn.clicked.connect(self.get_menu)
+        self.watch_btn.clicked.connect(self.draw_graph)
+        self.save_btn.clicked.connect(self.choose_file)
+        self.add_btn.clicked.connect(self.add_food)
+        self.search_btn.clicked.connect(self.find)
+        self.tkl_btn.clicked.connect(self.showday)
+        self.confirm_btn.clicked.connect(self.confirm)
 
-    def run(self):
-        self.label.setText('OK')
+    def get_menu_data(self):
+        with open("ABBREV.csv") as f:
+            data = list(csv.reader(f, delimiter=';'))
+            try:
+                self.fcur.execute(f"""CREATE TABLE food (
+                            NDB_No integer,
+                            Shrt_Desc real,
+                            Water real,
+                            Energ_Kcal integer,
+                            Protein real,
+                            Lipid_Tot real,
+                            Ash real,
+                            Carbohydrt real,
+                            Fiber_TD integer,
+                            Sugar_Tot real
+                            )""")
+                for line in data[1:]:
+                    if line:
+                        self.fcur.execute(f"INSERT INTO food VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                          line[:10])
+                self.fcon.commit()
+            except sqlite3.OperationalError:
+                return
+
+    def get_menu(self):
+        def choose(alike='%', between=(None, None)):
+            """
+            :param alike: name filter
+            :param between: (left border move, right border move)
+            :return: chosen food
+            """
+
+            if between[0] is None:
+                btw_str = ''
+            else:
+                btw_str = f" AND Energ_Kcal BETWEEN {kcal_count / 6 + between[0]} AND {kcal_count / 4 + between[1]}"
+            try:
+                result = random.choice(self.fcur.execute(
+                    f"""SELECT Shrt_Desc, Energ_Kcal FROM food WHERE Shrt_Desc LIKE '{alike}'""" + btw_str).fetchall())
+            except IndexError:
+                result = None
+            return result
+
+        kcal_count = int(self.cal_getter.value())
+        if kcal_count < 200:
+            self.menu.clear()
+            self.menu.appendPlainText("It will be hard for you to survive...")
+            return
+        menu = []
+        yogurt = choose('YOGURT%')
+        breakfast = choose('EGG%', (-70, 70))
+        lunch_1 = choose('SOUP%', (-70, 70))
+        lunch_2 = choose('%STEAK%', (-40, 150))
+        dinner = choose('RICE%', (-40, 100))
+        extra_1 = choose('%CHICKEN%', (-50, 50))
+        extra_2 = choose('%BEANS%', (-50, 50))
+        menu.extend([yogurt, breakfast, lunch_1, lunch_2, dinner, extra_1, extra_2])
+        for food in range(len(menu)):
+            kcal_count -= menu[food][1]
+            if kcal_count < 0:
+                index = food + 1
+                break
+        else:
+            index = len(menu)
+        self.menu.clear()
+        for food in menu[:index]:
+            if food is not None:
+                self.menu.appendPlainText(f"{food[0]} - {food[1]} calories\n")
+        self.menu.appendPlainText(f"Total: {int(self.cal_getter.value()) - kcal_count} calories.")
+
+    def draw_graph(self):
+        pass
+
+    def choose_file(self):
+        fname = QFileDialog.getOpenFileName(self, 'Choose file:', '')[0]
+        if fname:
+            with open(fname, 'w') as f:
+                f.write(self.menu.toPlainText())
+
+    def add_food(self):
+        chosen_food = self.fcur.execute(
+            f"""SELECT Shrt_Desc, Energ_Kcal FROM food 
+            WHERE Shrt_Desc LIKE '{self.comboBox.currentText().replace("'", "_")}'""").fetchone()
+        self.day.append(chosen_food)
+
+    def find(self):
+        alike = self.search.text().upper()
+        found = self.fcur.execute(f"""SELECT Shrt_Desc FROM food WHERE Shrt_Desc LIKE '%{alike}%'""").fetchall()
+        self.comboBox.clear()
+        self.comboBox.addItems([item[0] for item in found])
+
+    def showday(self):
+        self.menu.clear()
+        for line in self.day:
+            self.menu.appendPlainText(f'{line[0]} - {line[1]} calories\n')
+
+    def confirm(self):
+        data = self.menu.toPlainText().split('\n\n')[-1].split()[1]
+        self.fcur.execute(f"""CASE WHEN COL_LENGTH('accounts','{self.date_add}') IS NULL
+                                  ALTER TABLE accounts ADD {self.date_add} integer;
+                              """)
+        self.fcur.execute(f"""INSERT INTO accounts ({self.date_add})
+                                    WHERE (login='{self.login})
+                                    VALUES (?)""", (data,))
+        self.fcon.commit()
+
 
 
 def except_hook(cls, exception, traceback):
@@ -516,7 +194,9 @@ def except_hook(cls, exception, traceback):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = LoginWidget()
-    ex.show()
+    # ex = LoginWidget()
+    # ex.show()
+    mn = Main('osas')
+    mn.show()
     sys.excepthook = except_hook
     sys.exit(app.exec_())
