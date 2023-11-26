@@ -7,7 +7,8 @@ import pyqtgraph as pg
 
 from datetime import datetime
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QTableWidgetItem, QLabel
 
 with open("register.ui", encoding="utf8") as f:
     login_template = f.read()
@@ -20,12 +21,20 @@ class LoginWidget(QMainWindow):
         super().__init__()
         f = io.StringIO(login_template)
         uic.loadUi(f, self)
+
         self.con = sqlite3.connect("accounts.db")
         self.cur = self.con.cursor()
         self.login = self.login_line.text()
         self.password = self.password_line.text()
         self.reg_btn.clicked.connect(self.add_new)
         self.login_btn.clicked.connect(self.log_in)
+        self.pixmap = QPixmap('giga.jpg')
+        self.image = QLabel(self)
+        self.image.resize(645, 599)
+        self.image.setPixmap(self.pixmap)
+        self.image.lower()
+        self.label.setStyleSheet("QLabel { color: white; }")
+        self.status_lbl.setStyleSheet("QLabel { color: white; }")
 
     def add_new(self):
         self.login = self.login_line.text()
@@ -59,6 +68,7 @@ class LoginWidget(QMainWindow):
     def start(self, login):
         self.mn = Main(login)
         self.mn.show()
+        ex.close()
 
 
 class Main(QMainWindow):
@@ -66,6 +76,7 @@ class Main(QMainWindow):
         super().__init__()
         f = io.StringIO(main_template)
         uic.loadUi(f, self)
+
         self.goal = None
         self.login = login
         self.willkommen_lbl.setText(f"Welcome,\n{login}!")
