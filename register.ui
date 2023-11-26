@@ -20,9 +20,9 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>30</x>
+      <x>80</x>
       <y>30</y>
-      <width>611</width>
+      <width>561</width>
       <height>41</height>
      </rect>
     </property>
@@ -32,7 +32,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Добро пожаловать в &quot;МАСАНАБОР&quot;</string>
+     <string>Welcome to the &quot;МАСАНАБОР&quot;</string>
     </property>
    </widget>
    <widget class="QPushButton" name="reg_btn">
@@ -50,7 +50,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Регистрация</string>
+     <string>Register</string>
     </property>
    </widget>
    <widget class="QPushButton" name="login_btn">
@@ -68,7 +68,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Вход</string>
+     <string>Log in</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="password_line">
@@ -86,7 +86,7 @@
      </font>
     </property>
     <property name="placeholderText">
-     <string>Пароль</string>
+     <string>Password</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="login_line">
@@ -104,7 +104,7 @@
      </font>
     </property>
     <property name="placeholderText">
-     <string>Логин</string>
+     <string>Login</string>
     </property>
    </widget>
    <widget class="QLabel" name="status_lbl">
