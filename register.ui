@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>вход</string>
+   <string>Welcome!</string>
   </property>
   <property name="toolButtonStyle">
    <enum>Qt::ToolButtonIconOnly</enum>
@@ -40,7 +40,7 @@
      <enum>QFrame::NoFrame</enum>
     </property>
     <property name="text">
-     <string>   Welcome to the МАСАНАБОР!</string>
+     <string>   Welcome to the MASSAN'BOR!</string>
     </property>
    </widget>
    <widget class="QPushButton" name="reg_btn">

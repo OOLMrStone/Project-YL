@@ -80,7 +80,6 @@ class Main(QMainWindow):
         self.goal = None
         self.login = login
         self.willkommen_lbl.setText(f"Welcome,\n{login}!")
-        self.may_change = False
         self.day = []
         self.fcon = sqlite3.connect("accounts.db")
         self.fcur = self.fcon.cursor()
@@ -90,7 +89,7 @@ class Main(QMainWindow):
         self.save_btn.clicked.connect(self.choose_file)
         self.add_btn.clicked.connect(self.add_food)
         self.search_btn.clicked.connect(self.find)
-        self.tkl_btn.clicked.connect(self.showday)
+        self.clear_btn.clicked.connect(self.clear_day)
         self.confirm_btn.clicked.connect(self.confirm)
         self.goal_btn.clicked.connect(self.change_goal)
         self.table_btn.clicked.connect(self.view_database)
@@ -120,20 +119,21 @@ class Main(QMainWindow):
                 return
 
     def get_menu(self):
-        def choose(alike='%', between=(None, None)):
+        def choose(alike='%', between=(0, 0)):
             """
             :param alike: name filter
             :param between: (left border move, right border move)
             :return: chosen food
             """
 
-            if between[0] is None:
+            if between[0] == 0:
                 btw_str = ''
             else:
                 btw_str = f" AND Energ_Kcal BETWEEN {kcal_count / 6 + between[0]} AND {kcal_count / 4 + between[1]}"
             try:
                 result = random.choice(self.fcur.execute(
-                    f"""SELECT Shrt_Desc, Energ_Kcal FROM food WHERE Shrt_Desc LIKE '{alike}'""" + btw_str).fetchall())
+                    f"""SELECT Shrt_Desc, Energ_Kcal FROM food 
+                    WHERE Shrt_Desc LIKE '{alike}'""" + btw_str).fetchall())
             except IndexError:
                 result = None
             return result
@@ -188,7 +188,12 @@ class Main(QMainWindow):
         user_data = list(self.fcur.execute(f"""SELECT * FROM accounts WHERE login='{self.login}'""").fetchone()[3:])
         user_days = [self.decrypt(column[1])
                      for column in self.fcur.execute("PRAGMA table_info('accounts')").fetchall()[3:]]
+        for i in range(len(user_data)):
+            if user_data[i] is None:
+                user_days[i] = None
         cp = user_data.copy()
+        user_data = list(filter(lambda x: x is not None, user_data))
+        user_days = list(filter(lambda x: x is not None, user_days))
         user_data.sort(key=lambda value: user_days[cp.index(value)].split('_'))
         user_days.sort(key=lambda day: day.split('_'))
         for i in range(len(user_days)):
@@ -218,23 +223,20 @@ class Main(QMainWindow):
             f"""SELECT Shrt_Desc, Energ_Kcal FROM food 
             WHERE Shrt_Desc LIKE '{self.comboBox.currentText().replace("'", "_")}'""").fetchone()
         self.day.append(chosen_food)
+        self.menu.clear()
+        for line in self.day:
+            self.menu.appendPlainText(f'{line[0]} - {line[1]} calories\n')
 
     def find(self):
         alike = self.search.text().upper()
-        found = self.fcur.execute(f"""SELECT Shrt_Desc FROM food WHERE Shrt_Desc LIKE '%{alike}%'""").fetchall()
+        found = self.fcur.execute(f"""SELECT Shrt_Desc FROM food
+                                      WHERE Shrt_Desc LIKE '%{alike.replace("'", '_')}%'""").fetchall()
         self.comboBox.clear()
         self.comboBox.addItems([item[0] for item in found])
 
-    def showday(self):
+    def clear_day(self):
         self.menu.clear()
-        if self.day:
-            self.may_change = True
-            for line in self.day:
-                self.menu.appendPlainText(f'{line[0]} - {line[1]} calories\n')
-        else:
-            my_date = self.cpypt(str(self.date_add.date().toPyDate()).replace('-', '_'))
-            kcal = self.fcur.execute(f"SELECT {my_date} FROM accounts WHERE login='{self.login}'").fetchone()[0]
-            self.menu.setPlainText(f"You gain {kcal} calories that day.")
+        self.day.clear()
 
     def cpypt(self, date):
         crypto = {'0': 'a',
@@ -274,11 +276,7 @@ class Main(QMainWindow):
 
     def confirm(self):
         my_date = self.cpypt(str(self.date_add.date().toPyDate()).replace('-', '_'))
-        if self.may_change:
-            data = sum(int(product.split()[::-1][1]) for product in self.menu.toPlainText().split('\n\n'))
-        else:
-            data = sum([product[1] for product in self.day])
-        print(data, self.login)
+        data = sum(int(product.split()[::-1][1]) for product in self.menu.toPlainText().split('\n\n'))
 
         self.fcur.execute("PRAGMA table_info('accounts')")
         columns = [column[1] for column in self.fcur.fetchall()]
@@ -294,7 +292,8 @@ class Main(QMainWindow):
         self.goal = self.goal_inf.text()
 
     def view_database(self):
-        self.fcur.execute(f"""SELECT * FROM food WHERE Shrt_Desc LIKE '%{self.table_query.text().upper()}%'""")
+        self.fcur.execute(f"""SELECT * FROM food 
+                              WHERE Shrt_Desc LIKE '%{self.table_query.text().upper().replace("'", '_')}%'""")
         data = self.fcur.fetchall()
         self.table.setRowCount(len(data))
         self.table.setHorizontalHeaderLabels(["Name", "Water_(g)", "Kcal",
