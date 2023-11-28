@@ -1,7 +1,6 @@
 import io
 import sys
 import sqlite3
-import csv
 import random
 import pyqtgraph as pg
 
@@ -19,8 +18,8 @@ with open("mainWindow.ui") as f:
 class LoginWidget(QMainWindow):
     def __init__(self):
         super().__init__()
-        f = io.StringIO(login_template)
-        uic.loadUi(f, self)
+        base = io.StringIO(login_template)
+        uic.loadUi(base, self)
 
         self.con = sqlite3.connect("accounts.db")
         self.cur = self.con.cursor()
@@ -74,8 +73,8 @@ class LoginWidget(QMainWindow):
 class Main(QMainWindow):
     def __init__(self, login):
         super().__init__()
-        f = io.StringIO(main_template)
-        uic.loadUi(f, self)
+        main_base = io.StringIO(main_template)
+        uic.loadUi(main_base, self)
 
         self.goal = None
         self.login = login
@@ -83,7 +82,6 @@ class Main(QMainWindow):
         self.day = []
         self.fcon = sqlite3.connect("accounts.db")
         self.fcur = self.fcon.cursor()
-        self.get_menu_data()
         self.menu_btn.clicked.connect(self.get_menu)
         self.watch_btn.clicked.connect(self.draw_graph)
         self.save_btn.clicked.connect(self.choose_file)
@@ -93,30 +91,6 @@ class Main(QMainWindow):
         self.confirm_btn.clicked.connect(self.confirm)
         self.goal_btn.clicked.connect(self.change_goal)
         self.table_btn.clicked.connect(self.view_database)
-
-    def get_menu_data(self):
-        with open("ABBREV.csv") as f:
-            data = list(csv.reader(f, delimiter=';'))
-            try:
-                self.fcur.execute(f"""CREATE TABLE food (
-                            NDB_No integer,
-                            Shrt_Desc real,
-                            Water real,
-                            Energ_Kcal integer,
-                            Protein real,
-                            Lipid_Tot real,
-                            Ash real,
-                            Carbohydrt real,
-                            Fiber_TD integer,
-                            Sugar_Tot real
-                            )""")
-                for line in data[1:]:
-                    if line:
-                        self.fcur.execute(f"INSERT INTO food VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                                          line[:10])
-                self.fcon.commit()
-            except sqlite3.OperationalError:
-                return
 
     def get_menu(self):
         def choose(alike='%', between=(0, 0)):
@@ -190,10 +164,10 @@ class Main(QMainWindow):
                      for column in self.fcur.execute("PRAGMA table_info('accounts')").fetchall()[3:]]
         for i in range(len(user_data)):
             if user_data[i] is None:
-                user_days[i] = None
+                user_days[i] = ''
+        user_data = list(filter(lambda x: x, user_data))
+        user_days = list(filter(lambda x: x, user_days))
         cp = user_data.copy()
-        user_data = list(filter(lambda x: x is not None, user_data))
-        user_days = list(filter(lambda x: x is not None, user_days))
         user_data.sort(key=lambda value: user_days[cp.index(value)].split('_'))
         user_days.sort(key=lambda day: day.split('_'))
         for i in range(len(user_days)):
