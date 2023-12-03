@@ -197,7 +197,7 @@
      </font>
     </property>
     <property name="maximum">
-     <number>2000</number>
+     <number>4999</number>
     </property>
    </widget>
    <widget class="QPushButton" name="menu_btn">
